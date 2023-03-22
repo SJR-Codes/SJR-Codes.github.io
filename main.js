@@ -157,7 +157,7 @@ async function showUserInfo(clear = false) {
             `<h3>Your email:</h3>
             <form action="" id="user-form">
             <input type="text" name="email" id="email" class="text-input" value="${userEmail}"><br><br>
-            <button class="button" onclick="UpdateUser(event)">Change</button></form>`;
+            <!--<button class="button" onclick="UpdateUser(event)">Change</button>--></form>`;
         clear == true ? cont.innerHTML = uinfo : cont.innerHTML += uinfo;
     };
 }
