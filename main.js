@@ -4,20 +4,30 @@ const baseURL = "https://oyf.azurewebsites.net";
 let cont = document.getElementById('content');
 let foot = document.getElementById("footer");
 let userEmail = false;
-let isAdmin = false; //relax, it's just for showing or not certain forms, your beh... backend is safe
+let isAdmin = false; //relax, it's just for showing or not certain forms, your beh... backend is safe (if it's any good)
 let categories = false;
 //TODO: we're getting lot of globals lately, is this the way?
 
-function getInit() {
+function getInit(method="GET", accept="application/json", contentType="application/json", withToken=true, data=false ) {
     let myInit = {
-        method: "GET",
-        headers: {
-            Accept: "application/json",
-            Authorization: "Bearer " + sessionStorage.getItem('token'),
-        },
+        method: method,
         mode: "cors",
         cache: "default",
+        headers: {
+            'Accept': accept,
+        },
     };
+
+    if ( contentType !== false ) {
+        myInit.headers['Content-Type'] = contentType;
+    }
+    if ( withToken !== false ) {
+        myInit.headers['Authorization'] = "Bearer " + sessionStorage.getItem('token');
+    }
+    if ( data !== false ) {
+        myInit['body'] = data;
+    }
+
     return myInit;
 }
 async function goFetch(request){
@@ -67,28 +77,22 @@ async function doLogin(e) {
     e.preventDefault();
     console.debug("Trying login...")
     const usern = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
+    const password = document.getElementById('password').value;    
     if( usern == "" || password == "" ) {
         cont.innerHTML = "<div class='error'>Enter username and password, please.</div>" + cont.innerHTML;
         return null;
     }
-    
+
     //hide form after getting both values
     document.getElementById('login-form').classList.add("hidden");
     //TODO: some nice rolling hourglass would be nice
-    cont.innerHTML = "<h3>One moment, please. Loggin you in...</h3>" + cont.innerHTML;
+    cont.innerHTML = "<br><br><h3>One moment, please. Loggin you in...</h3>" + cont.innerHTML;
 
+    //make request
     const queryParams = { username: usern, password: password }
-    const formbody = new URLSearchParams(queryParams).toString();    
-    const request = new Request(baseURL + "/auth/jwt/login", {
-        method: "POST",
-        mode: "cors", // no-cors, *cors, same-origin
-        headers: {
-            "Accept": "application/json",
-            "Content-Type": 'application/x-www-form-urlencoded',
-        },
-        body: formbody,
-    });
+    const formbody = new URLSearchParams(queryParams).toString();
+    let myInit = getInit("POST", "application/json", "application/x-www-form-urlencoded", false, formbody );
+    const request = new Request(baseURL + "/auth/jwt/login", myInit);
     let res = await goFetch(request);
     
     if ( res !== false ) {
@@ -107,17 +111,10 @@ async function AddCategory(e) {
         return null;
     }    
     let data = JSON.stringify({"title": cat_title});
-    const request = new Request(baseURL + "/categories/", {
-        method: "POST",
-        mode: "cors", // no-cors, *cors, same-origin
-        headers: {
-            'Accept': 'application/json',
-            'Authorization': "Bearer " + sessionStorage.getItem('token'),
-            'Content-Type': 'application/json',
-        },
-        body: data,
-    });
+    let myInit = getInit("POST", "application/json", "application/json", true, data );
+    const request = new Request(baseURL + "/categories/", myInit);
     let res = await goFetch(request);
+    
     if ( res !== false ) {
         await getCategories();
         await showSettings();
@@ -226,24 +223,11 @@ async function doUpload(e) {
     form = new FormData(document.getElementById('up-form'));
 
     //TODO: error checking needed here...
-    let res = await upStuff("/upload/", form);
+    let myInit = getInit("POST", "application/json", false, true, form );
+    const request = new Request(baseURL + "/upload/", myInit);
+    let res = await goFetch(request);
+
     console.debug(res);
     await getPhoto(res.id);
-    cont.innerHTML += '<div class="success">Photo uploaded very sucessfully!</div>';
-}
-async function upStuff(fpath, body){
-    let request = new Request(baseURL + fpath, {
-        method: "POST",
-        mode: "cors", // no-cors, *cors, same-origin
-        headers: {
-            'Accept': 'application/json',
-            //'Content-Type': 'multipart/form-data', //i'll remember you, you puny piece of sales
-            'Authorization': "Bearer " + sessionStorage.getItem('token'),
-        },
-        body: body, 
-    });
-    let res = await goFetch(request);
-    if ( res !== false ) {
-        return res;
-    }
+    cont.innerHTML = '<div class="success">Photo uploaded very sucessfully!</div>' + cont.innerHTML;
 }
