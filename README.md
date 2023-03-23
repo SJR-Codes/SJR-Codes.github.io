@@ -7,8 +7,16 @@ https://github.com/SJR-Codes/OwnYourFiles_foto
 
 Simple & very lightweight web-client for Own Your Files – Photos HTTP REST API
 
+#### Source:
+
+https://github.com/SJR-Codes/Own-Your-Files-client/tree/dev
+
 ### Testing:
+
+https://sjr-codes.github.io/
+
 Username: test@example.com
+
 Password: Testi42
 
 ## Feedback welcome!
