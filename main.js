@@ -72,6 +72,12 @@ async function doLogin(e) {
         cont.innerHTML = "<div class='error'>Enter username and password, please.</div>" + cont.innerHTML;
         return null;
     }
+    
+    //hide form after getting both values
+    document.getElementById('login-form').classList.add("hidden");
+    //TODO: some nice rolling hourglass would be nice
+    cont.innerHTML = "<h3>One moment, please. Loggin you in...</h3>" + cont.innerHTML;
+
     const queryParams = { username: usern, password: password }
     const formbody = new URLSearchParams(queryParams).toString();    
     const request = new Request(baseURL + "/auth/jwt/login", {
