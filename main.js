@@ -1,4 +1,4 @@
-const baseURL = "http://oyf.azurewebsites.net";
+const baseURL = "https://oyf.azurewebsites.net";
 let cont = document.getElementById('content');
 let foot = document.getElementById("footer");
 let userEmail = false;
