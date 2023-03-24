@@ -1,6 +1,4 @@
-//const baseURL = "https://oyf.azuresites.net"; //F U owner of this shite
-
-const baseURL = "https://oyf.azurewebsites.net";
+const baseURL = "http://localhost:8000";
 let cont = document.getElementById('content');
 let foot = document.getElementById("footer");
 let userEmail = false;
@@ -42,19 +40,25 @@ async function goFetch(request){
         return false;
     }
 }
-async function getPhotos() {
+async function getPhotos(category_id = false) {
     let myInit = getInit();
-    const request = new Request(baseURL + "/photos/", myInit);
-    let res = await goFetch(request);
-    if ( res !== false ) {
-        cont.innerHTML = "";
-        res.forEach((photo) => {
-            let click = 'onclick="getPhoto(\'' + photo.id + '\')"';
-            let img = "<img src='data:image/jpeg;base64," + photo.thumbnail + "' alt='photo'></img>";
-            let span = "<span " + click + " class='thumb'>" + img + "<span/>";
-            cont.innerHTML += span;  
-        });
+    let req = ''
+    if ( category_id != false ) {
+        req = "/photosbycat/"  + category_id;
     }
+    else {
+        req = "/photos/";
+    }
+    const request = new Request(baseURL + req, myInit);
+    let res = await goFetch(request);
+    //if ( res !== false ) {        //TODO: better error checking
+    res.forEach((photo) => {
+        let click = 'onclick="getPhoto(\'' + photo.id + '\')"';
+        let img = "<img src='data:image/jpeg;base64," + photo.thumbnail + "' alt='photo'></img>";
+        let span = "<span " + click + " class='thumb'>" + img + "<span/>";
+        cont.innerHTML += span;  
+    });
+    //}
 }
 async function getPhoto(id) {
     const fpath = "/photos/" + id;
@@ -100,7 +104,7 @@ async function doLogin(e) {
         await setUserInfo();
         await getCategories();
         await showNavi();
-        await getPhotos();
+        await showPhotos();
     }
 }
 async function AddCategory(e) {
@@ -136,7 +140,7 @@ async function showDivider() {
 }
 //TODO: daamn, tis' ugly as fudge
 async function showNavi() {
-    let navi = `<p id="footnavi"><span class="fakelink" onclick="getPhotos()">Photos</span> | `;
+    let navi = `<p id="footnavi"><span class="fakelink" onclick="showPhotos()">Photos</span> | `;
     if ( isAdmin == true ) { navi += `<span class="fakelink" onclick="showUpload()">Upload</span> | `; }
     navi += `<span class="fakelink" onclick="showSettings()">Settings</span></p>`;
 
@@ -152,6 +156,14 @@ async function setUserInfo() {
         userEmail = res.email;
         isAdmin = res.is_superuser;
     }
+}
+async function showPhotos(category_id) {
+    let list = await categoriesSelect(category_id, true);    
+    let form = '<form action="" id="search-form">';
+    
+    cont.innerHTML = form + list + '</form>';
+
+    await getPhotos(category_id);
 }
 async function showUserInfo(clear = false) {
     if ( userEmail !== false ) {
@@ -195,19 +207,33 @@ function showUpload() {
     let form = `<h3>Upload new photo:</h3><form action="" id="up-form">
     <input type="file" name="upfile" id="upfile" class="text-input" placeholder=""><br><br>`;
 
-    if ( categories !== false ) {
-        list = "<select class='text-input' id='category_id' name='category_id'>";
-        list += "<option value=''> - select category - </option>";
-        categories.forEach((category) => {
-            list += "<option value='" + category.id + "'>" + category.title + "</option>";
-        });
-        list += "</select>"
-    }
+    let list = categoriesSelect();
 
     form += list + `<br><br><button class="button" onclick="doUpload(event)">Send</button></form>`;
 
     cont.innerHTML = form;
 }
+function categoriesSelect( category_id = false, onchange = false ) {
+    if ( categories !== false ) {
+        let change = onchange == true ? ' onchange="doSearch()"' : ''
+        list = "<select class='text-input' id='category_id' name='category_id'" + change + ">";
+        list += "<option value=''> - select category - </option>";
+        categories.forEach((category) => {
+            let optSelected = category.id == category_id ? " selected='selected'" : "";
+            list += "<option value='" + category.id + "'" + optSelected + ">" + category.title + "</option>";
+        });
+        list += "</select>"
+    }
+
+    return list;
+}
+
+async function doSearch() {
+    const category_id = document.getElementById("category_id").value;
+    cont.innerHTML = "<h3>Searching... One moment, please.</h3>";
+    await showPhotos(category_id);
+}
+
 async function doUpload(e) {
     e.preventDefault();
     const upfile = document.getElementById("upfile");

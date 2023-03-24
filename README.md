@@ -22,3 +22,7 @@ Password: Testi42
 ## Feedback welcome!
 
 (It ain't pretty but she's mine, besides I'm more of a backend guy...)
+
+
+## Updates:
+2023-03-24: added fetch photos by category
